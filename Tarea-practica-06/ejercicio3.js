@@ -1,43 +1,82 @@
 import readline from "node:readline";
 
-const ejer1 = readline.promises.createInterface({
-    input: process.stdin,
-    output: process.stdout,
+const ejer2 = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
 });
 
-const inventario = [];
+let cantidad = 0;
+let suma = 0;
+let calificacionMasAlta = -Infinity;
+let calificacionMasBaja = Infinity;
+let i = 1;
 
-for (let i = 1; i <= 4; i++) {
-    console.log(`Producto ${i}`);
-    const nombre = await ejer1.question("Nombre: ");
-    const precio = parseFloat(await ejer1.question("Precio: "));
-    const cantidad = parseInt(await ejer1.question("Cantidad: "));
+ejer2.question('¿Cuántas calificaciones desea ingresar? ', (cantidadStr) => {
+    cantidad = parseInt(cantidadStr);
 
-    inventario.push({ nombre, precio, cantidad });
-}
+    if (isNaN(cantidad) || cantidad <= 0) {
+        console.log('Error: Ingrese un número mayor a 0.');
+        ejer2.close();
+        return;
+    }
 
-ejer1.close();
+    pedirCalificacion();
+});
 
-let totalProductos = 0;
-let valorInventario = 0;
+function pedirCalificacion() {
+    if (i <= cantidad) {
+        ejer2.question(`Ingrese la calificación ${i}: `, (notaStr) => {
+            let nota = parseFloat(notaStr);
 
-console.log("--- INVENTARIO ---");
+            if (isNaN(nota) || nota < 0 || nota > 100) {
+                console.log('Calificación inválida. Ingrese un valor entre 0 y 100.');
+                pedirCalificacion();
+                return;
+            }
 
-for (const producto of inventario) {
-    const valorTotal = producto.precio * producto.cantidad;
-    console.log(`${producto.nombre}: $${valorTotal.toFixed(2)}`);
+            suma += nota;
 
-    totalProductos += producto.cantidad;
-    valorInventario += valorTotal;
-}
+            if (nota > calificacionMasAlta) {
+                calificacionMasAlta = nota;
+            }
 
-const resumen = {
-    totalProductos: totalProductos,
-    valorInventario: valorInventario.toFixed(2),
-};
+            if (nota < calificacionMasBaja) {
+                calificacionMasBaja = nota;
+            }
 
-console.log("--- RESUMEN ---");
+            i++;
+            pedirCalificacion();
+        });
+    } else {
+        let promedio = suma / cantidad;
+        let categoria = '';
 
-for (const propiedad in resumen) {
-    console.log(`${propiedad}: ${resumen[propiedad]}`);
+        switch (true) {
+            case (promedio >= 90 && promedio <= 100):
+                categoria = 'Sobresaliente (A)';
+                break;
+            case (promedio >= 80 && promedio < 90):
+                categoria = 'Notable (B)';
+                break;
+            case (promedio >= 70 && promedio < 80):
+                categoria = 'Aprobado (C)';
+                break;
+            case (promedio >= 60 && promedio < 70):
+                categoria = 'Suficiente (D)';
+                break;
+            default:
+                categoria = 'Reprobado (F)';
+                break;
+        }
+
+        console.log('\n--- RESULTADOS ---');
+        console.log(`Cantidad: ${cantidad}`);
+        console.log(`Suma total: ${suma}`);
+        console.log(`Promedio final: ${promedio.toFixed(2)}`);
+        console.log(`Calificación más alta: ${calificacionMasAlta}`);
+        console.log(`Calificación más baja: ${calificacionMasBaja}`);
+        console.log(`Categoría: ${categoria}`);
+
+        ejer2.close();
+    }
 }
